@@ -1,0 +1,30 @@
+Here are a CFLAGS that hcustom uses to build - we can recreate these in the VC7.1 IDE to allow a more convenient build process and control over linking. For example hcustom uses the /MD runtime library even when in debug mode, which is not compatible with Ogre (which uses /MDd in debug mode).
+
+
+Debug:
+-TP 		    - just C++ indicator, automatic in VC
+-Zc:forScope    - warn over 'for' scoping issues
+-DVERSION="8.1.704" - Houdini specific
+-DOFSTREAM_PERMISSIONS=", 0666" - Houdini specific, not used and comma-delimit in value causes issues so removed
+-DI386  - standard
+-DWIN32 - standard
+-DSWAP_BITFIELDS - Houdini specific?
+-DDLLEXPORT=__declspec(dllexport)  - Houdini specific
+-DSESI_LITTLE_ENDIAN 	 - Houdini specific
+-DMAKING_DSO 			- Houdini specific
+-I . -I "E:/vstudio7.1/VC7/include" -I "E:/vstudio7.1/VC7/PlatformSDK/include" -I "E:/HOUDIN~1.704/custom/include" -I "E:/HOUDIN~1.704/toolkit/include" - project includes
+-Od 	- No optimisation
+-Z7 	- debugging information in .obj, no PDB- could be altered
+-MD  	- this is a problem, should be /MDd to be compatible with Ogre runtimes
+-GX 	- exception handling
+-GR 	- RTTI enabled
+-Fo"HoudiniOgre_ROP.o" 
+-LD -link /libpath:"E:/vstudio7.1/VC7/lib" /libpath:"E:/vstudio7.1/VC7/PlatformSDK/lib"  "E:/HOUDIN~1.704/custom/houdini/dsolib/*.a" 
+-out:"C:/DOCUME~1/Steve/MYDOCU~1/houdini8.1/dso/HoudiniOgre_ROP.dll"
+
+Release (differences only):
+-Od changed to -Ox 
+-Z7 removed
+
+
+

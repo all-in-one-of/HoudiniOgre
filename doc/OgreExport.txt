@@ -1,0 +1,137 @@
+#type: node
+#context: out
+#icon: ROP/HoudiniOgre
+
+= HoudiniOgre Output Driver =
+
+"""This output operator exports geometry and skeletal animation in
+native Ogre format"""
+
+The HoudiniOgre custom render operator exports polygonal geometry and
+skeletal animation in a format native to version 1.4 (Eihort) of the
+popular open-source graphics engine, OGRE.
+
+It is important to note that HoudiniOgre is purely a geometry exporter
+(as opposed to a scene exporter).  Specifically, no support is
+currently provided for cameras, animation channels, or even materials.
+Usage questions are best addressed in the Ogre Forums.
+
+HoudiniOgre was written by Ogre project lead Steve Streeting under
+contract to EDM Studio Inc., a Canadian company that creates
+large-scale digital interactives for leading museums, institutions and
+industry.  Creation of this tool would not have occurred without the
+generous support of the fine folks at Side Effects Software.
+
+HoudiniOgre is released under the terms of the GNU General Public
+License (GPL).  See end of this help for details.
+
+
+@parameters
+
+Render:
+    Begins the render with the last render control settings.</td>
+
+Render Control:
+    Opens the render control dialog to allow adjustments of the render parameters before rendering.  This dialog is of minimal use in this context.
+
+Valid Frame Range:
+    Render Any Frame: 
+        Renders a single frame, based on the value in the playbar or the frame that is requested by a connected output render node.
+
+    Render Frame Range:
+        When rendering a range of frames, adding a $F to the Output Path (see below) will yield a sequence of unique output files.  For example, with frame range 1-10, an Output Path of "$HIP/object$F3" will create a sequence of files, "$HIP/object001.mesh", "$HIP/object002.mesh", ... "$HIP/object010.mesh".  As vertex animation is not currently supported, use this method to export snapshots of a deforming mesh.
+
+Start/End/Inc:
+    Specifies the range of frames to render (start frame, end frame, and increment). All values may be floating point values. The range is inclusive. 
+
+Render with Take:
+    Uses the settings in a particular take while rendering. Choose "Current" to use the current take when rendering.
+
+Output Path:
+    Directory for file export.  The path can include environment variables such as $HIP, $HOME, etc.
+
+Export Mode:
+    The default setting is to create an appropriately named .mesh for each visible object.  Alternatively, select "Single Merged Mesh" to embed all objects in one .mesh file.  If the latter option is chosen, the Output Path above can be post-pended with the desired mesh name.
+
+Bake Object Transforms:
+    Toggles whether or not object-level transforms are applied to SOP-level geometry.
+
+Generate Tangents:
+    From the Ogre documentation, "Tangent vectors are vectors representing the local 'X' axis for a given vertex based on the orientation of the 2D texture on the geometry. They are built from a combination of existing normals, and from the 2D texture coordinates already baked into the model. They can be used for a number of things, but most of all they are useful for vertex and fragment programs, when you wish to arrive at a common space for doing per-pixel calculations."
+
+Tangent VertexElement:
+    From the Ogre documentation, "The semantic to store the tangents in. Defaults to the explicit tangent binding, but note that this is only usable on more modern hardware (Shader Model 2), so if you need portability with older cards you should change this to a texture coordinate binding instead."
+
+Generate Edge Lists:
+    From the Ogre documentation, "Builds an edge list for this mesh, which can be used for generating a shadow volume among other things."
+
+IK Sample Rate:
+    Animation cycles are resampled and saved at this framerate.
+
+
+@Mesh Export
+
+When exporting geometry with the custom exporter, keep the
+following in mind: 
+
+    * HoudiniOgre will export all Geometry objects whose display flag (the blue one) is active.  If you want fine-grained control over what gets exported, you can use groups to toggle visibility (and hence export).
+
+    * You must select an output path before hitting "Render".  Failure to do so will cause the HoudiniOgre ROP to turn red.  Middle mouse on the red icon to see the message.
+
+    * While the exporter will triangulate all polygons, you are better doing this within Houdini via the Divide SOP.  Doing so allows you to see and judge the results before they get to Ogre.
+
+    * The current version only descends into Geometry objects from /obj level.  As a result, geometry contained within Houdini Digital Assets (HDAs) is overlooked.  The workaround is to create a dummy Geometry object that simply contains an ObjectMerge SOP referencing the HDA geometry.  If this sounds like gibberish, you probably don't need this functionality ;-)
+
+    * Problems with exporting take on two forms.  
+
+        # A .mesh file is created but the results are incorrect when viewed in your Ogre application (improperly lit, seemingly front-face culled, incorrect texturing, etc.)  In this scenario, please verify that your Ogre code is working correctly before attributing the problem to HoudiniOgre.  Do a drop-in replacement with one of the standard Ogre meshes to validate your code.
+
+        # The red error flag appears (usually an output path issue, see above) and/or Houdini crashes after pressing "Render".  Bad.  You've almost certainly triggered a bug.  Restart Houdini, delete the Ogre.log file in your Houdini installation directory, and ensure that the problem still exists (Houdini is a complex piece of software and ocassionally gets a corrupted internal state).  Try and pare your .hipnc down to the smallest example that reliably recreates the crash. Send this and the Ogre.log file to houdiniogre@edmstudio.com for possible debugging.
+
+    * HoudiniOgre is first and foremost an internal EDM Studio tool.  We rapidly respond to bugs that affect our workflow and our commercial licensees.
+
+
+@Skeletal Animation
+
+Exporting of bone-driven animation cycles to Ogre is handled as follows: 
+
+    # Create a standard Houdini polygonal character rig.  Feel free to use IK, FK, path-driven kinematics as HoudiniOgre will simply sample bone positions at the designated rate.
+
+    # Keyframe your various animation cycles at different ranges on the timeline.  For example, frames 1-100 as a walk cycle, frames 101-259 as a "fall down" cycle, etc.
+
+    # To indicate these various cycles to the exporter, we make use of so-called "detail attributes".  Whereas custom point and primitive attributes are replicated per point or per primitive, detail attributes occur once per object.  At each frame of a given cycle, use the AttribCreate SOP to add a string detail attribute "animcycle" with a value equal to your desired cycle name.  The exporter will form an Ogre AnimationState for each sequence of Houdini frames having a similarly-named "animcycle" detail attribute.  (Yes, we know this is an inconvenient method of specifying the animation cycle.  EDM Studio is looking at a more convenient method for specifying these ranges.)
+
+    # Add a HoudiniOgre ROP.  Set the sample rate to the desired temporal resolution (default is 5 samples/second).  Render.  The exporter will create a .mesh file for your character geometry and an associated .skel file containing the bone definitions and animation cycle information.
+
+
+
+@locals
+    N:
+        The current frame of the range specified. This always starts at 1.
+
+    NRENDER:
+        Total number of frames being rendered.
+
+
+
+@Terms of Use
+
+=== Copyright ===
+
+HoudiniOgre is copyright 2007 EDM Studio Inc and Torus Knot Software Ltd.
+
+
+=== License ===
+
+HoudiniOgre is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 3 of the License, or (at your
+option) any later version.
+
+HoudiniOgre is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see [http://www.gnu.org/licenses].

@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HoudiniOgre", "HoudiniOgre.vcproj", "{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		DebugStaticLib = DebugStaticLib
+		Release = Release
+		ReleaseStaticLib = ReleaseStaticLib
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.Debug.ActiveCfg = Debug|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.Debug.Build.0 = Debug|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.DebugStaticLib.ActiveCfg = Debug|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.DebugStaticLib.Build.0 = Debug|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.Release.ActiveCfg = Release|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.Release.Build.0 = Release|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.ReleaseStaticLib.ActiveCfg = Release|Win32
+		{35A8BC0B-3EF0-48B2-8B39-EC24539AD307}.ReleaseStaticLib.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

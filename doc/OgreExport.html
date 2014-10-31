@@ -1,0 +1,370 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>OgreExport</title>
+<link href="../../../support/style/helpcard.css" rel="stylesheet">
+<meta content="" name="description">
+<script src="resource:///res/RunHCommand.js" type="text/javascript"></script><script src="../../../support/style/document.js" type="text/javascript"></script><script src="../../../support/style/_version.js" type="text/javascript"></script>
+</head>
+<body onload="initHelpcard()">
+<table cellspacing="0" class="out" id="titleTable">
+<tr>
+<td id="iconCell"><img alt="Node icon" src="../_icons/large/THOR/ROP_OgreExport.png" id="nodeIcon"></td><td id="titleCell">
+<h1>OgreExport</h1>
+<ul class="path">
+<li class="pathTitle">
+<a href="../../home.html">Home</a>
+</li>
+<li class="pathTitle">
+<span class="pathArrow"><span class="pathArrowText">▶</span></span>
+</li>
+<li class="pathTitle">
+<span class="pathTitleText"><a href="../ops.html">Operators</a></span>
+</li>
+<li class="pathTitle">
+<span class="pathArrow"><span class="pathArrowText">▶</span></span>
+</li>
+<li class="pathTitle">
+<span class="pathTitleText"><a href="../ops_out.html">Render output operators (ROPs)</a></span>
+</li>
+<li class="pathTitle">
+<span class="pathArrow"><span class="pathArrowText">▶</span></span>
+</li>
+<li class="pathTitle">
+<span class="pathTitleText"><span class="pathHere">OgreExport</span></span>
+</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td id="tabsCell" colspan="2">
+<table cellspacing="0" id="tabList">
+<tr>
+<td id="tabButtonAll"></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<div class="contentBody">
+<div id="summary">
+<div class="summary">This output operator exports geometry and skeletal animation in native Ogre format</div>
+</div>
+
+<div id="body" class="tab">
+<h2>Overview</h2>
+<div class="tabContent">
+        
+<p>The <b>HoudiniOgre</b> custom render operator exports
+polygonal geometry and skeletal animation in a format native to
+version 1.4 (Eihort) of the popular open-source graphics engine, <a
+href="http://www.ogre3d.org/">OGRE</a>.</p>
+
+<p>It is important to note that HoudiniOgre is purely a geometry
+exporter (as opposed to a scene exporter). Specifically, no support is
+currently provided for cameras, animation channels, or even materials.
+Usage questions from non-commercial users are best addressed in the <a
+href="http://www.ogre3d.org/phpBB2/index.php">Ogre Forums</a>.  </p>
+
+<p>HoudiniOgre was written by Ogre project lead Steve Streeting under
+contract to <a href="http://www.edmstudio.com/">EDM Studio Inc.</a>, a
+Canadian company that creates large-scale digital interactives for
+leading museums, institutions and industry.  Creation of this tool
+would not have occurred without the generous support of the fine folks
+at <a href="http://www.sidefx.com">Side Effects Software</a>.</p>
+
+<p>Commercial use of this product requires a paid license from EDM
+Studio Inc; see terms of use for details.</p>
+
+</div>
+</div>
+
+
+<div id="mesh" class="tab">
+<h2>Mesh Export</h2>
+<div class="tabContent">
+
+<p>When exporting geometry with the custom exporter, keep the
+following in mind: 
+
+<ul>
+
+<li>HoudiniOgre will export all Geometry objects whose display flag
+(the blue one) is active.  If you want fine-grained control over what
+gets exported, you can use groups to toggle visibility (and hence
+export).</li>
+
+<li>You must select an output path before hitting "Render".  Failure
+to do so will cause the HoudiniOgre ROP to turn red.  Middle mouse on
+the red icon to see the message.</li>
+
+<li>While the exporter will triangulate all polygons, you are better
+doing this within Houdini via the Divide SOP.  Doing so allows you to
+see and judge the results before they get to Ogre.</li>
+
+<li>The current version only descends into Geometry objects from /obj
+level.  As a result, geometry contained within Houdini Digital Assets
+(HDAs) is overlooked.  The workaround is to create a dummy Geometry
+object that simply contains an ObjectMerge SOP referencing the HDA
+geometry.  If this sounds like gibberish, you probably don't need this
+functionality ;-)</li>
+
+<li>Problems with exporting take on two forms.  
+<ol> 
+
+<li>A .mesh file is created but the results are incorrect when viewed
+in your Ogre application (improperly lit, seemingly front-face culled,
+incorrect texturing, etc.)  In this scenario, please verify that your
+Ogre code is working correctly before attributing the problem to
+HoudiniOgre.  Do a drop-in replacement with one of the standard Ogre
+meshes to validate your code.</li>
+
+<li>The red error flag appears (usually an output path issue, see
+above) and/or Houdini crashes after pressing "Render".  Bad.  You've
+almost certainly triggered a bug.  Restart Houdini, delete the
+Ogre.log file in your Houdini installation directory, and ensure that
+the problem still exists (Houdini is a complex piece of software and
+ocassionally gets a corrupted internal state).  Try and pare your
+.hipnc down to the smallest example that reliably recreates the crash.
+Send this and the Ogre.log file to houdiniogre@edmstudio.com for
+possible debugging.</li>
+</ol>
+
+HoudiniOgre is first and foremost an internal EDM Studio tool.  We
+rapidly respond to bugs that affect our workflow and our commercial
+licensees.  As a non-commercial user, please don't expect the same
+level of service as a paying customer.</li>
+</ul> 
+</p>
+
+</div>
+</div>
+
+
+
+<div id="skeletal" class="tab">
+<h2>Skeletal Animation</h2>
+<div class="tabContent">
+
+<p>Exporting of bone-driven animation cycles to Ogre is handled as
+follows: 
+<ol> 
+
+<li>Create a standard Houdini polygonal character rig.  Feel free to
+use IK, FK, path-driven kinematics as HoudiniOgre will simply sample
+bone positions at the designated rate.</li>
+
+<li>Keyframe your various animation cycles at different ranges on the
+timeline.  For example, frames 1-100 as a walk cycle, frames 101-259
+as a "fall down" cycle, etc.</li>
+
+<li>To indicate these various cycles to the exporter, we make use of
+so-called "detail attributes".  Whereas custom point and primitive
+attributes are replicated per point or per primitive, detail
+attributes occur once per object.  At each frame of a given cycle, use
+the AttribCreate SOP to add a string detail attribute "animcycle" with
+a value equal to your desired cycle name.  The exporter will form an
+Ogre AnimationState for each sequence of Houdini frames having a
+similarly-named "animcycle" detail attribute.  (Yes, we know this is
+an inconvenient method of specifying the animation cycle.  EDM Studio
+is looking at a more convenient method for specifying these
+ranges.)</li>
+
+<li>Add a HoudiniOgre ROP.  Set the sample rate to the desired
+temporal resolution (default is 5 samples/second). Render.  The
+exporter will create a .mesh file for your character geometry and an
+associated .skel file containing the bone definitions and animation
+cycle information.</li>
+
+</ol> 
+</p>
+
+</div>
+</div>
+
+
+
+<div id="parameters" class="tab">
+<h2>Parameters</h2>
+<div class="tabContent">
+        
+<table cellspacing="0" class="parmTable">
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Render</p>
+<p class="parmChannels">/execute</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">Begins the render with the last render control settings.</td>
+</tr>
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Render Control</p>
+<p class="parmChannels">/renderdialog</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">Opens the render control dialog to allow adjustments of the render parameters before rendering.  This dialog is of minimal use in this context.</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Set Valid Frame Range</p>
+<p class="parmChannels">/trange</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">
+When rendering a range of frames, adding a $F to the Output Path (see below) will yield a sequence of unique output files.  For example, with frame range 1-10, an Output Path of "$HIP/object$F3" will create a sequence of files, "$HIP/object001.mesh", "$HIP/object002.mesh", ... "$HIP/object010.mesh".  As vertex animation is not currently supported, use this method to export snapshots of a deforming mesh. 
+</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Render with Take</p>
+<p class="parmChannels">/take</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">Uses the settings in a particular take while rendering. Choose "Current" to use the current take when rendering.</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Output Path</p>
+<p class="parmChannels">/output</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">Directory for file export.  The path can include environment variables such as $HIP, $HOME, etc.
+
+</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Export Mode</p>
+<p class="parmChannels">/exportMode</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">The default setting is to create an appropriately named .mesh for each visible object.  Alternatively, select "Single Merged Mesh" to embed all objects in one .mesh file.  If the latter option is chosen, the Output Path above can be post-pended with the desired mesh name.</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Bake Object Transforms</p>
+<p class="parmChannels">/transformMode</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">Toggles whether or not object-level transforms are applied to SOP-level geometry.</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Generate Tangents</p>
+<p class="parmChannels">/genTangents</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">From the Ogre documentation, "Tangent vectors are vectors representing the local 'X' axis for a given vertex based on the orientation of the 2D texture on the geometry. They are built from a combination of existing normals, and from the 2D texture coordinates already baked into the model. They can be used for a number of things, but most of all they are useful for vertex and fragment programs, when you wish to arrive at a common space for doing per-pixel calculations."</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Tangent VertexElement</p>
+<p class="parmChannels">/tangentsType</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">From the Ogre documentation, "The semantic to store the tangents in. Defaults to the explicit tangent binding, but note that this is only usable on more modern hardware (Shader Model 2), so if you need portability with older cards you should change this to a texture coordinate binding instead."</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">Generate Edge Lists</p>
+<p class="parmChannels">/genEdgeLists</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">From the Ogre documentation, "Builds an edge list for this mesh, which can be used for generating a shadow volume among other things."</td>
+</tr>
+
+<tr class="parmRow">
+<td class="parmName">
+<p class="parmNameText">IK Sample Rate</p>
+<p class="parmChannels">/iksamplerate</p>
+<p class="parmNotes"></p>
+</td><td class="parmDesc">Animation cycles are resampled and saved at this framerate.</td>
+</tr>
+
+</table>
+
+</div>
+</div>
+
+
+<div id="locals" class="tab">
+<h2>Local variables</h2>
+<div class="tabContent">
+<table cellspacing="0" class="itemTable">
+<tr>
+<td class="itemName">N</td><td class="itemDesc">The current frame of the range specified. This always starts at 1.</td>
+</tr>
+<tr>
+<td class="itemName">NRENDER</td><td class="itemDesc">Total number of frames being rendered.</td>
+</tr>
+</table>
+</div>
+</div>
+
+
+
+<div id="terms" class="tab">
+<h2>Terms of Use</h2>
+<div class="tabContent">
+
+<h3>Non-Commercial Use End-User License Agreement</h3>
+
+<p>By installing, copying or otherwise using HoudiniOgre, you agree to
+be bound by the terms of this Non-Commercial Use End-User License
+Agreement (EULA). If you do not agree with the terms of this EULA, you
+may not use the software product.</p>
+
+<p>Commercial use of this product requires a paid license from EDM
+Studio Inc.  Licenses are negotiated on a case-by-case basis; contact
+<a
+href="mailto:houdiniogre@edmstudio.com">houdiniogre@edmstudio.com</a>
+for more information.  Revenue from commercial licenses is used to
+fund development of this and other tools that integrate Houdini into
+the Ogre pipeline.</p>
+
+
+<h3>Grant of License</h3>
+
+<p>This EULA grants you the non-exclusive right to use HoudiniOgre on any
+number of computers so long as every use of HoudiniOgre is for
+non-commercial use.</p>
+
+<p>Definitions of non-commercial use differ.  Under the terms of this
+license, non-commercial use is defined to be the logical negation of
+the following definition of commercial use:
+<blockquote>"Any data passing through the HoudiniOgre exporter that is
+ subsequently used to generate income for yourself or your company,
+ either directly or incidentally, is considered commercial use."</blockquote>
+If you are unclear about whether or not your situation constitutes
+commercial or non-commercial use, ask for clarification.</p>
+
+
+<h3>Liability</h3>
+
+<p>This software is provided "as is" and any express or implied
+warranties, including, but not limited to, the implied warranties of
+merchantability and fitness for a particular purpose are
+disclaimed. In no event shall EDM Studio Inc and Torus Knot Software
+Ltd be liable for any direct, indirect, incidental, special,
+exemplary, or consequential damages (including, but not limited to,
+procurement of substitute goods or services; loss of use, data, or
+profits; or business interruption) however caused and on any theory of
+liability, whether in contract, strict liability, or tort (including
+negligence or otherwise) arising in any way out of the use of this
+software, even if advised of the possibility of such damage.</p>
+
+
+<h3>Copyright</h3>
+
+<p>HoudiniOgre is copyright 2007 EDM Studio and Torus Knot Software.</p>
+
+
+</div>
+</div>
+
+</div>
+
+
+<div id="userContribNotes"></div>
+<script type="text/javascript">getUserContribNotes();</script>
+</body>
+</html>
